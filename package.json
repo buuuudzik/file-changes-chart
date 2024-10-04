@@ -3,6 +3,10 @@
   "displayName": "file-changes-chart",
   "publisher": "buuuudzik",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/buuuudzik/file-changes-chart"
+  },
   "version": "0.0.2",
   "engines": {
     "vscode": "^1.93.0"
