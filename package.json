@@ -21,10 +21,6 @@
       {
         "command": "file-changes-chart.showFileChangesChart",
         "title": "FCC: Show File Changes Chart"
-      },
-      {
-        "command": "file-changes-chart.showFileChangesChartWithOthers",
-        "title": "FCC: Show File Changes Chart With Others"
       }
     ]
   },

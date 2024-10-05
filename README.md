@@ -32,4 +32,3 @@ The extension parses your Git commit history to:
 ## Supported commands
 Type `CTRL+Shift+P` (on Windows/Linux) and `CMD+Shift+P` (on Mac) and choose one of these command:
 - `Show File Changes Chart` - showing the history of the currently active file
-- `Show File Changes Chart With Others` - showing the history of the currently active file with all changed in the same commits
