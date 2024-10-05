@@ -3,7 +3,7 @@ let renderChartTxt = null;
 let renderTableTxt = null;
 let createStateTxt = null;
 
-function getWebviewContent(data) {
+function getWebviewContent(data, panelState) {
   if (renderChartTxt === null) {
     renderChartTxt = fs.readFileSync(__dirname + "/renderChart.js", "utf8");
   }
@@ -82,7 +82,14 @@ function getWebviewContent(data) {
   const btnCaptions = {
     whenPresentingDelta: "delta",
     whenPresentingLines: "lines",
+    showOthers: "Show others",
   };
+
+  panelState = {
+    ...panelState,
+    minOccurencies: 0,
+    showDelta: true,
+  }
 
   return `<!DOCTYPE html>
       <html lang="en">
@@ -93,6 +100,7 @@ function getWebviewContent(data) {
                     font-family: Arial, sans-serif;
                     background-color: #238846;
                     color: white;
+                    position: relative;
                 }
                 h1 {
                     color: #333;
@@ -152,6 +160,32 @@ function getWebviewContent(data) {
                 tr:hover {
                     background-color: #eaeaea; /* Highlight row on hover */
                 }
+
+                button {
+                  cursor: pointer;
+                  padding: 3px;
+                  background-color: white;
+                  color: black;
+                  border: 1px solid green;
+                  border-radius: 3px;
+                }
+
+                #loading-container {
+                  display: none;
+                  width: 200px;
+                  height: 100px;
+                  justify-content: center;
+                  align-items: center;
+                  background-color: green;
+                  color: white;
+                  border-radius: 3px;
+                  position: fixed;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  box-shadow: 2px 2px 6px grey;
+                  z-index: 1000;
+                }
             </style>
       </head>
       <body>
@@ -160,9 +194,15 @@ function getWebviewContent(data) {
             <div id="header-left">
                 <div>
                     <label for="min-occurrencies">Min occurencies:</label>
-                    <input id="min-occurrencies" type="number" min="0" step="1" value="0" />
+                    <input id="min-occurrencies" type="number" min="0" step="1" value="${
+                      panelState.minOccurencies
+                    }" />
                 </div>
-                <button id="change-chart-data">${btnCaptions.whenPresentingDelta}</button>
+                <button id="change-chart-data">${
+                  panelState.showDelta
+                    ? btnCaptions.whenPresentingDelta
+                    : btnCaptions.whenPresentingLines
+                }</button>
                 <div>
                   <button id="show-period-1w">1w</button>
                   <button id="show-period-1m">1m</button>
@@ -171,7 +211,8 @@ function getWebviewContent(data) {
                   <button id="show-period-1y">1y</button>
                   <button id="show-period-full">full</button>
                 </div>
-                <button id="show-others">Show others</button>
+                <button id="show-others">${btnCaptions.showOthers}</button>
+                <div id="loading-container">Loading...</div>
             </div>
         </div>
         <div id="chart"></div>
@@ -181,28 +222,39 @@ function getWebviewContent(data) {
         ${createStateTxt}
 
         // Create states
-        const minOccurencies = createState('number', 0, { min: 0 });
-        const showDelta = createState('boolean', true);
-        const showOthers = createState('boolean', false);
-        const showPeriod = createState('string', 'lastMonth');
+        const minOccurencies = createState('number', ${
+          panelState.minOccurencies
+        }, { min: 0 });
+        const showDelta = createState('boolean', ${
+          panelState.showDelta ? "true" : "false"
+        });
+        const showOthers = createState('boolean', ${
+          panelState.showOthers ? "true" : "false"
+        });
+        const showPeriod = createState('string', '${panelState.showPeriod}');
 
         // Set value changed listeners
         minOccurencies.addListener((value) => {
-          renderChart(chartData, showDelta.value, minOccurencies.value);
-          renderTable(chartData, minOccurencies.value);
+          console.log('minOccurencies changed:', value);
+          renderChart(chartData, showDelta.value, value);
+          renderTable(chartData, value);
         });
 
         showDelta.addListener((value) => {
-          console.log('showDelta changed', value);
           renderChart(chartData, showDelta.value, minOccurencies.value);
+        });
+        showOthers.addListener((value) => {
+          markBtn(showOthersButton, value);
+          sendMessageToBackend({ command: 'showOthers', value });
         });
 
         // Communicate with the backend
         const vscode = acquireVsCodeApi(); // Acquire the VS Code API object
         function sendMessageToBackend(messageObj) {
+          console.log('Sending message to backend:', messageObj);
           vscode.postMessage(messageObj);
+          loadingContainer.style.display = 'flex';
         }
-        window.sendMessageToBackend = sendMessageToBackend;
 
         // Elements
         const chartTypeButton = document.getElementById("change-chart-data");
@@ -214,6 +266,7 @@ function getWebviewContent(data) {
         const showPeriodFullButton = document.getElementById("show-period-full");
         const showOthersButton = document.getElementById("show-others");
         const minOccurrenciesInput = document.getElementById("min-occurrencies");
+        const loadingContainer = document.getElementById("loading-container");
 
         const periodButtons = [
           showPeriod1wButton,
@@ -224,28 +277,31 @@ function getWebviewContent(data) {
           showPeriodFullButton
         ];
 
+        const markBtn = (button, isActive) => {
+          button.style.backgroundColor = isActive ? '#6fc056' :'white' ;
+          button.style.color = isActive ? 'white' : 'black';
+        };
+
         const markActivePeriodButton = (activeButton) => {
           periodButtons.forEach(button => {
-            if (button.textContent === activeButton) {
-              button.style.backgroundColor = 'green';
-              button.style.color = 'white';
-            } else {
-              button.style.backgroundColor = 'white';
-              button.style.color = 'black';
-            }
+            markBtn(button, button.textContent === activeButton);
           });
         };
 
         showPeriod.addListener((value) => {
           markActivePeriodButton(value);
+          sendMessageToBackend({ command: 'showPeriod', value });
         });
 
         // Event listeners on elements
         chartTypeButton.addEventListener("click", () => {
           showDelta.toggle();
-          chartTypeButton.innerText = showDelta.value ? "${btnCaptions.whenPresentingDelta}" : "${btnCaptions.whenPresentingLines}";
+        });
+        showOthersButton.addEventListener("click", () => {
+          showOthers.toggle();
         });
         periodButtons.forEach(periodBtn => {
+          markBtn(periodBtn, showPeriod.value === periodBtn.textContent.trim());
           periodBtn.addEventListener("click", (e) => {
             showPeriod.set(e.target.textContent.trim());
           });

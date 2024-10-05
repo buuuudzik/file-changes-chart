@@ -58,10 +58,17 @@ function activate(context) {
         (withOthers ? " with others" : "")
     );
 
-    prepareGraphData(folderPath, fileName, withOthers).then((data) => {
+    const panelState = {
+      showOthers: !!withOthers,
+      showPeriod: "1m",
+    };
+
+    prepareGraphData(folderPath, fileName, panelState).then((data) => {
       const panel = vscode.window.createWebviewPanel(
         "fileChangesChart",
-        "File Changes Chart: " + fileName + (withOthers ? " with others" : ""),
+        "File Changes Chart: " +
+          fileName +
+          (panelState.showOthers ? " with others" : ""),
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -70,25 +77,50 @@ function activate(context) {
 
       // Listen for messages from the Webview
       panel.webview.onDidReceiveMessage(
-        (message) => {
+        async (message) => {
           switch (message.command) {
             case "sendMessage":
               vscode.window.showInformationMessage(
                 `Message received: ${message.text}`
               );
+              console.log("Message received:", message.text);
               break;
             case "alertMessage":
               vscode.window.showWarningMessage(
                 `Alert from Webview: ${message.text}`
               );
+              console.log("Alert from Webview:", message.text);
               break;
+            case "showPeriod": {
+              panelState.showPeriod = message.value;
+              const newData = await prepareGraphData(
+                folderPath,
+                fileName,
+                panelState
+              );
+              console.log("Show Period:", message.value);
+              panel.webview.html = getWebviewContent(newData, panelState);
+              break;
+            }
+            case "showOthers": {
+              // showPeriod.set(message.value);
+              console.log("Show Others:", message.value);
+              panelState.showOthers = message.value;
+              const newData = await prepareGraphData(
+                folderPath,
+                fileName,
+                panelState
+              );
+              panel.webview.html = getWebviewContent(newData, panelState);
+              break;
+            }
           }
         },
         undefined,
         context.subscriptions
       );
 
-      panel.webview.html = getWebviewContent(data);
+      panel.webview.html = getWebviewContent(data, panelState);
     });
   };
 

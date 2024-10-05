@@ -64,7 +64,8 @@ const escapeValue = (value) => {
   return sanitized;
 };
 
-async function prepareGraphData(filePath, fileName, showOtherFiles = false) {
+async function prepareGraphData(filePath, fileName, panelState) {
+  const { showOthers, showPeriod } = panelState;
   try {
     let git = simpleGit(filePath);
 
@@ -136,9 +137,44 @@ async function prepareGraphData(filePath, fileName, showOtherFiles = false) {
       }
     }
 
+    const sinceArgs = [];
+
+    if (showPeriod !== "full") {
+      sinceArgs.push("--since");
+
+      const sinceDate = new Date();
+      switch (showPeriod) {
+        case "1w":
+          sinceDate.setDate(sinceDate.getDate() - 7);
+          break;
+        case "1m":
+          sinceDate.setMonth(sinceDate.getMonth() - 1);
+          break;
+        case "3m":
+          sinceDate.setMonth(sinceDate.getMonth() - 3);
+          break;
+        case "6m":
+          sinceDate.setMonth(sinceDate.getMonth() - 6);
+          break;
+        case "1y":
+          sinceDate.setFullYear(sinceDate.getFullYear() - 1);
+          break;
+        default:
+          break;
+      }
+
+      const year = sinceDate.getFullYear();
+      const month = sinceDate.getMonth() + 1;
+      const day = sinceDate.getDate();
+      const addZero = (num) => (num < 10 ? `0${num}` : `${num}`);
+      sinceArgs.push([year, month, day].map(addZero).join("-"));
+    }
+
     // Getting commit history
     //   git log --follow -- filename
-    const log = await git.log(["--follow", "--", repoFilePath]);
+    const logCmd = [...sinceArgs, "--follow", "--", repoFilePath];
+    console.log("Log command:", logCmd);
+    const log = await git.log(logCmd);
     console.log("Log:", log);
 
     const data = {};
@@ -146,7 +182,7 @@ async function prepareGraphData(filePath, fileName, showOtherFiles = false) {
     console.log(`Processing file: ${repoFilePath}`);
 
     for (const commit of log.all) {
-      const restFilesFromCommit = showOtherFiles
+      const restFilesFromCommit = showOthers
         ? await getFilesFromCommit(commit.hash, true)
         : [];
 
