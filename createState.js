@@ -28,14 +28,14 @@ function createState(type, defaultValue, config) {
       }
     },
     isValidValue: function (value) {
-      switch (this.type) {
+      switch (state.type) {
         case "number":
           return (
             isValidNumber(value) &&
-            "min" in this &&
-            value >= this.min &&
-            "max" in this &&
-            value <= this.max
+            "min" in state &&
+            value >= state.min &&
+            "max" in state &&
+            value <= state.max
           );
         case "string":
           return isValidString(value) ? value : "";
@@ -46,17 +46,20 @@ function createState(type, defaultValue, config) {
       }
     },
     set: function (value) {
-      this.value = isValidNumber(value) ? value : 0;
-      this.listeners.forEach((listener) => listener(value));
+      state.value = state.isValidValue(value) ? value : 0;
+      state.listeners.forEach((listener) => listener(value));
+    },
+    toggle: function () {
+      state.set(!state.value);
     },
     addListener: function (listener) {
-      this.listeners.push(listener);
+      state.listeners.push(listener);
     },
     removeListener: function (listener) {
-      this.listeners = this.listeners.filter((l) => l !== listener);
+      state.listeners = state.listeners.filter((l) => l !== listener);
     },
     removeAllListeners: function () {
-      this.listeners = [];
+      state.listeners = [];
     },
   };
 

@@ -80,8 +80,8 @@ function getWebviewContent(data) {
   const chartDataString = chartData ? JSON.stringify(chartData) : "";
 
   const btnCaptions = {
-    showDelta: "Show Delta",
-    showLines: "Show Lines",
+    whenPresentingDelta: "delta",
+    whenPresentingLines: "lines",
   };
 
   return `<!DOCTYPE html>
@@ -162,7 +162,16 @@ function getWebviewContent(data) {
                     <label for="min-occurrencies">Min occurencies:</label>
                     <input id="min-occurrencies" type="number" min="0" step="1" value="0" />
                 </div>
-                <button id="change-chart-data">${btnCaptions.showLines}</button>
+                <button id="change-chart-data">${btnCaptions.whenPresentingDelta}</button>
+                <div>
+                  <button id="show-period-1w">1w</button>
+                  <button id="show-period-1m">1m</button>
+                  <button id="show-period-3m">3m</button>
+                  <button id="show-period-6m">6m</button>
+                  <button id="show-period-1y">1y</button>
+                  <button id="show-period-full">full</button>
+                </div>
+                <button id="show-others">Show others</button>
             </div>
         </div>
         <div id="chart"></div>
@@ -174,6 +183,8 @@ function getWebviewContent(data) {
         // Create states
         const minOccurencies = createState('number', 0, { min: 0 });
         const showDelta = createState('boolean', true);
+        const showOthers = createState('boolean', false);
+        const showPeriod = createState('string', 'lastMonth');
 
         // Set value changed listeners
         minOccurencies.addListener((value) => {
@@ -182,6 +193,7 @@ function getWebviewContent(data) {
         });
 
         showDelta.addListener((value) => {
+          console.log('showDelta changed', value);
           renderChart(chartData, showDelta.value, minOccurencies.value);
         });
 
@@ -194,13 +206,51 @@ function getWebviewContent(data) {
 
         // Elements
         const chartTypeButton = document.getElementById("change-chart-data");
+        const showPeriod1wButton = document.getElementById("show-period-1w");
+        const showPeriod1mButton = document.getElementById("show-period-1m");
+        const showPeriod3mButton = document.getElementById("show-period-3m");
+        const showPeriod6mButton = document.getElementById("show-period-6m");
+        const showPeriod1yButton = document.getElementById("show-period-1y");
+        const showPeriodFullButton = document.getElementById("show-period-full");
+        const showOthersButton = document.getElementById("show-others");
         const minOccurrenciesInput = document.getElementById("min-occurrencies");
+
+        const periodButtons = [
+          showPeriod1wButton,
+          showPeriod1mButton,
+          showPeriod3mButton,
+          showPeriod6mButton,
+          showPeriod1yButton,
+          showPeriodFullButton
+        ];
+
+        const markActivePeriodButton = (activeButton) => {
+          periodButtons.forEach(button => {
+            if (button.textContent === activeButton) {
+              button.style.backgroundColor = 'green';
+              button.style.color = 'white';
+            } else {
+              button.style.backgroundColor = 'white';
+              button.style.color = 'black';
+            }
+          });
+        };
+
+        showPeriod.addListener((value) => {
+          markActivePeriodButton(value);
+        });
 
         // Event listeners on elements
         chartTypeButton.addEventListener("click", () => {
-          showDelta.set(!showDelta.value);
-          chartTypeButton.innerText = showDelta.value ? "${btnCaptions.showLines}" : "${btnCaptions.showDelta}";
+          showDelta.toggle();
+          chartTypeButton.innerText = showDelta.value ? "${btnCaptions.whenPresentingDelta}" : "${btnCaptions.whenPresentingLines}";
         });
+        periodButtons.forEach(periodBtn => {
+          periodBtn.addEventListener("click", (e) => {
+            showPeriod.set(e.target.textContent.trim());
+          });
+        });
+        
         minOccurrenciesInput.addEventListener("change", (e) => {
             minOccurencies.set(parseInt(e.target.value));
         });
