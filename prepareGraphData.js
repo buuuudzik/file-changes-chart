@@ -13,36 +13,34 @@ function isValidJSON(str, logError = false) {
 }
 
 function sanitizeStringValueForJSONFormat(str) {
-    if (typeof str !== 'string') {
-      return '';
-    }
-
-    return str.replace(/[^\d\w]/gm, " ");
-  
-    // Usuń wszystkie znaki kontrolne poza dozwolonymi w JSON-ie
-    // Dozwolone: \b, \f, \n, \r, \t
-    str = str.replace(
-      /[\u0000-\u001F\u007F-\u009F]/g,
-      (char) => {
-        switch (char) {
-        //   case '\b':
-        //   case '\f':
-        //   case '\n':
-        //   case '\r':
-          case '\t':
-            return char;
-          default:
-            return ''; // Usuń inne znaki kontrolne
-        }
-      }
-    );
-  
-    // Ucieczkowanie znaków specjalnych zgodnie ze specyfikacją JSON
-    str = str.replace(/\\/g, '\\\\')   // Ucieczkuj backslash
-             .replace(/"/g, '\\"');    // Ucieczkuj cudzysłów
-  
-    return str;
+  if (typeof str !== "string") {
+    return "";
   }
+
+  return str.replace(/[^\d\w]/gm, " ");
+
+  // Usuń wszystkie znaki kontrolne poza dozwolonymi w JSON-ie
+  // Dozwolone: \b, \f, \n, \r, \t
+  str = str.replace(/[\u0000-\u001F\u007F-\u009F]/g, (char) => {
+    switch (char) {
+      //   case '\b':
+      //   case '\f':
+      //   case '\n':
+      //   case '\r':
+      case "\t":
+        return char;
+      default:
+        return ""; // Usuń inne znaki kontrolne
+    }
+  });
+
+  // Ucieczkowanie znaków specjalnych zgodnie ze specyfikacją JSON
+  str = str
+    .replace(/\\/g, "\\\\") // Ucieczkuj backslash
+    .replace(/"/g, '\\"'); // Ucieczkuj cudzysłów
+
+  return str;
+}
 
 function sanitizeJSONString(jsonString) {
   // Usuń wszystkie znaki kontrolne ASCII o wartościach poniżej 0x20 (poza prawidłowymi, jak \n, \t)
@@ -174,6 +172,10 @@ async function prepareGraphData(filePath, fileName, showOtherFiles = false) {
         });
       }
     }
+
+    Object.entries(data).forEach(([fileName, fileData]) => {
+      fileData.reverse();
+    });
 
     console.log("Data:", data);
     return data;

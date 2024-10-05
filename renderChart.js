@@ -30,12 +30,27 @@ function renderChart(chartData, showDelta, minOccurencies) {
     chart: {
       height: 350,
       type: "line",
+      zoom: {
+        // enabled: false // Disable zooming by scroll and pinch
+      },
+      events: {
+        click(event, chartContext, opts) {
+          // copy to clipboard
+          navigator.clipboard.writeText(JSON.stringify(opts.config.series[opts.seriesIndex].data[opts.dataPointIndex]));
+        //   console.log(opts.config.series[opts.seriesIndex]);
+        //   console.log(opts.config.series[opts.seriesIndex].name);
+        //   console.log(
+        //     opts.config.series[opts.seriesIndex].data[opts.dataPointIndex]
+        //   );
+        },
+      },
     },
     dataLabels: {
       //   enabled: true,
     },
     stroke: {
       curve: "stepline",
+      width: 1, // Sets line width to 5 pixels for all series
     },
     title: {
       text: "File Changes Chart",
@@ -55,7 +70,8 @@ function renderChart(chartData, showDelta, minOccurencies) {
         var data = w.globals.series[seriesIndex][dataPointIndex];
         var customData =
           w.globals.initialSeries[seriesIndex].data[dataPointIndex].custom;
-        return `<div class="tooltip">
+
+        return `<div class="tooltip" style="padding: 5px;">
             <span>${customData?.fileName}</span>
             <span>${data}lines</span><br>
             <span>${customData.commit.hash || ""}</span><br>

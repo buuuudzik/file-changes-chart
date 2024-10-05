@@ -13,6 +13,7 @@ function renderTable(chartData, minOccurencies) {
       <td>${stats.occurrences}</td>
       <td>${stats.minLines}</td>
       <td>${stats.maxLines}</td>
+      <td>${stats.lastValue}</td>
       </tr>`;
     })
     .join("");
@@ -22,9 +23,10 @@ function renderTable(chartData, minOccurencies) {
   <thead>
       <tr>
         <th>File Name</th>
-        <th>Occurrences</th>
+        <th>Commits</th>
         <th>Min Lines</th>
         <th>Max Lines</th>
+        <th>Curr Lines</th>
       </tr>
     </thead>
     <tbody>

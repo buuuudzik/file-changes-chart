@@ -21,6 +21,8 @@ function getWebviewContent(data) {
             maxLines: null,
             firstValue: null,
             lastValue: 0,
+            firstDate: null,
+            lastDate: null,
           };
         }
 
@@ -29,6 +31,15 @@ function getWebviewContent(data) {
           stats: tableData[fileName], // Only for my purposes, it's not the part of API
           data: data.map((d) => {
             tableData[fileName].occurrences += 1;
+
+            if (
+              tableData[fileName].firstDate === null
+              // ||
+              // new Date(d.date) < new Date(tableData[fileName].firstDate)
+            ) {
+              tableData[fileName].firstDate = d.date;
+              tableData[fileName].firstValue = d.lines;
+            }
 
             if (
               tableData[fileName].minLines === null ||
@@ -42,10 +53,6 @@ function getWebviewContent(data) {
               d.lines > tableData[fileName].maxLines
             ) {
               tableData[fileName].maxLines = d.lines;
-            }
-
-            if (tableData[fileName].firstValue === null) {
-              tableData[fileName].firstValue = d.lines;
             }
 
             const pointConfig = {
@@ -80,7 +87,8 @@ function getWebviewContent(data) {
             <style>
                 body {
                     font-family: Arial, sans-serif;
-                    background-color: #f4f4f4;
+                    background-color: #238846;
+                    color: white;
                 }
                 h1 {
                     color: #333;
@@ -108,11 +116,37 @@ function getWebviewContent(data) {
                 }
                 #chart {
                     background: #f4f4f4;
+                    padding: 10px;
+                    margin: 10px;
+                    color: black;
                 }
                 #table-container {
                     background: #f4f4f4;
                     color: black;
-                    padding: 20px;
+                    padding: 10px;
+                    margin: 10px;
+                    overflow-x: auto;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse; /* Removes the default spacing between cells */
+                }
+                th, td {
+                    border: 1px solid #ddd; /* Adds a border around cells */
+                    padding: 8px;           /* Adds space inside cells */
+                    text-align: left;       /* Aligns text to the left */
+                }
+                th {
+                    background-color: #f2f2f2; /* Light gray background for header cells */
+                    font-weight: bold;         /* Bold text for headers */
+                }
+
+                tr:nth-child(even) {
+                    background-color: #f9f9f9; /* Alternating row colors */
+                }
+
+                tr:hover {
+                    background-color: #eaeaea; /* Highlight row on hover */
                 }
             </style>
       </head>
