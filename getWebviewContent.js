@@ -1,6 +1,7 @@
 const fs = require("fs");
 let renderChartTxt = null;
 let renderTableTxt = null;
+let createStateTxt = null;
 
 function getWebviewContent(data) {
   if (renderChartTxt === null) {
@@ -8,6 +9,9 @@ function getWebviewContent(data) {
   }
   if (renderTableTxt === null) {
     renderTableTxt = fs.readFileSync(__dirname + "/renderTable.js", "utf8");
+  }
+  if (createStateTxt === null) {
+    createStateTxt = fs.readFileSync(__dirname + "/createState.js", "utf8");
   }
 
   const tableData = {};
@@ -165,31 +169,48 @@ function getWebviewContent(data) {
         <div id="table-container"></div>
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         <script>
+        ${createStateTxt}
+
+        // Create states
+        const minOccurencies = createState('number', 0, { min: 0 });
+        const showDelta = createState('boolean', true);
+
+        // Set value changed listeners
+        minOccurencies.addListener((value) => {
+          renderChart(chartData, showDelta.value, minOccurencies.value);
+          renderTable(chartData, minOccurencies.value);
+        });
+
+        showDelta.addListener((value) => {
+          renderChart(chartData, showDelta.value, minOccurencies.value);
+        });
+
+        // Communicate with the backend
+        const vscode = acquireVsCodeApi(); // Acquire the VS Code API object
+        function sendMessageToBackend(messageObj) {
+          vscode.postMessage(messageObj);
+        }
+        window.sendMessageToBackend = sendMessageToBackend;
+
+        // Elements
         const chartTypeButton = document.getElementById("change-chart-data");
         const minOccurrenciesInput = document.getElementById("min-occurrencies");
-        let minOccurencies = 0;
-        let showDelta = true;
+
+        // Event listeners on elements
         chartTypeButton.addEventListener("click", () => {
-          showDelta = !showDelta;
-          chartTypeButton.innerText = showDelta ? "${btnCaptions.showLines}" : "${btnCaptions.showDelta}";
-          renderChart(chartData, showDelta, minOccurencies);
+          showDelta.set(!showDelta.value);
+          chartTypeButton.innerText = showDelta.value ? "${btnCaptions.showLines}" : "${btnCaptions.showDelta}";
         });
         minOccurrenciesInput.addEventListener("change", (e) => {
-            minOccurencies = parseInt(e.target.value);
-
-            if (Number.isNaN(minOccurencies) || minOccurencies < 0) {
-                minOccurencies = 0;
-            }
-
-            renderChart(chartData, showDelta, minOccurencies);
-            renderTable(chartData, minOccurencies);
+            minOccurencies.set(parseInt(e.target.value));
         });
+
         let chartData = \`${chartDataString}\`;
         chartData = chartData ? JSON.parse(chartData) : null;
         ${renderChartTxt}
-        renderChart(chartData, showDelta, minOccurencies);
+        renderChart(chartData, showDelta.value, minOccurencies.value);
         ${renderTableTxt}
-        renderTable(chartData, minOccurencies);
+        renderTable(chartData, minOccurencies.value);
         </script>
       </body>
       </html>`;

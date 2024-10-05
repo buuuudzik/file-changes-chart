@@ -22,15 +22,17 @@ function activate(context) {
     activeFilePath = vscode.window.activeTextEditor.document.uri.fsPath;
     // console.log("Last opened file path:", activeFilePath);
   } else {
-    vscode.window.showInformationMessage("No active file when the extension was activated.");
-	return;
+    vscode.window.showInformationMessage(
+      "No active file when the extension was activated."
+    );
+    return;
   }
 
   // Listen for when the active editor changes
   vscode.window.onDidChangeActiveTextEditor((editor) => {
     if (editor) {
-    //   console.log("Active editor changed to:", editor.document.uri.fsPath);
-	  activeFilePath = editor.document.uri.fsPath;
+      //   console.log("Active editor changed to:", editor.document.uri.fsPath);
+      activeFilePath = editor.document.uri.fsPath;
     }
   });
 
@@ -51,7 +53,9 @@ function activate(context) {
 
     // Display a message box to the user
     vscode.window.showInformationMessage(
-      "Showing file changes chart for: " + fileName + (withOthers ? " with others" : "")
+      "Showing file changes chart for: " +
+        fileName +
+        (withOthers ? " with others" : "")
     );
 
     prepareGraphData(folderPath, fileName, withOthers).then((data) => {
@@ -62,6 +66,26 @@ function activate(context) {
         {
           enableScripts: true,
         }
+      );
+
+      // Listen for messages from the Webview
+      panel.webview.onDidReceiveMessage(
+        (message) => {
+          switch (message.command) {
+            case "sendMessage":
+              vscode.window.showInformationMessage(
+                `Message received: ${message.text}`
+              );
+              break;
+            case "alertMessage":
+              vscode.window.showWarningMessage(
+                `Alert from Webview: ${message.text}`
+              );
+              break;
+          }
+        },
+        undefined,
+        context.subscriptions
       );
 
       panel.webview.html = getWebviewContent(data);
