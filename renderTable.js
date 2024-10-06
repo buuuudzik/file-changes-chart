@@ -79,7 +79,7 @@ function renderTable(chartData, minOccurencies) {
         return td;
       };
 
-      const nameTd =createTd(name, tr, (td, e) => {
+      const nameTd = createTd(name, tr, (td, e) => {
         if (e.ctrlKey || e.metaKey) {
           sendMessageToBackend({
             command: "openFile",
@@ -96,10 +96,12 @@ function renderTable(chartData, minOccurencies) {
       createTd(stats.minLines);
       createTd(stats.maxLines);
       createTd(stats.lastValue);
-      createTd(authorsColumn, tr, () => copyText(authorEmail));
+      const authorsTd = createTd(authorsColumn, tr, () => copyText(authorEmail));
+      authorsTd.title = authors.map(([email, count]) => `${email} (${count}c)`).join("\n");
 
       tBody.appendChild(tr);
     });
 
+  tableContainer.innerText = "";
   tableContainer.appendChild(table);
 }

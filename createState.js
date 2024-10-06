@@ -45,6 +45,7 @@ function createState(type, defaultValue, config) {
     set: function (value) {
       state.value = state.isValidValue(value) ? value : 0;
       if (this.updateView) this.updateView(state.value);
+      if (state.type === 'string')console.log("state.value change", state.value);
       state.listeners.forEach((listener) => listener(state.value));
     },
     toggle: function () {

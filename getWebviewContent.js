@@ -16,6 +16,7 @@ function getWebviewContent(data, panelState) {
   const tableData = {};
 
   const allNames = [];
+  let allAuthors = new Set();
 
   const chartData = data
     ? Object.entries(data).map(([fileName, data]) => {
@@ -71,6 +72,8 @@ function getWebviewContent(data, panelState) {
 
             stats.lastValue = d.lines;
 
+            allAuthors.add(d.commit.author_email);
+
             if (!stats.authors[d.commit.author_email]) {
               stats.authors[d.commit.author_email] = 0;
             }
@@ -123,6 +126,11 @@ function getWebviewContent(data, panelState) {
     showOthers: "Show others",
   };
 
+  allAuthors = [...allAuthors].sort();
+  // const allAuthorsText = JSON.stringify(allAuthors);
+
+  console.log("getWebviewContent", data, panelState, allAuthors);
+
   return `<!DOCTYPE html>
       <html lang="en">
       <head>
@@ -135,26 +143,43 @@ function getWebviewContent(data, panelState) {
         <div id="header">
             <h1>File Changes Chart</h1>
             <div id="header-right">
+                <select id="select-author" value="${panelState.selectedAuthor}">
+                    <option value="all">All authors</option>
+                    ${allAuthors
+                      .map(
+                        (author) =>
+                          `<option value="${author}">${author}</option>`
+                      )
+                      .join("")}
+                    ${
+                      panelState.selectedAuthor !== "all" &&
+                      !allAuthors.includes(panelState.selectedAuthor)
+                        ? `<option value="${panelState.selectedAuthor}">${panelState.selectedAuthor}</option>`
+                        : ""
+                    }
+                </select>
                 <div>
                     <label for="min-occurrencies">Min occurencies:</label>
                     <input id="min-occurrencies" type="number" min="0" step="1" value="${
                       panelState.minOccurencies
                     }" />
                 </div>
-                <button id="change-chart-data">${
+                <button id="change-chart-data" title="Show while lines number or its delta between the current commit and the last before">${
                   panelState.showDelta
                     ? btnCaptions.whenPresentingDelta
                     : btnCaptions.whenPresentingLines
                 }</button>
                 <div>
-                  <button id="show-period-1w">1w</button>
-                  <button id="show-period-1m">1m</button>
-                  <button id="show-period-3m">3m</button>
-                  <button id="show-period-6m">6m</button>
-                  <button id="show-period-1y">1y</button>
-                  <button id="show-period-full">full</button>
+                  <button id="show-period-1w" title="last week">1w</button>
+                  <button id="show-period-1m" title="last month">1m</button>
+                  <button id="show-period-3m" title="last 3 months">3m</button>
+                  <button id="show-period-6m" title="last 6 months">6m</button>
+                  <button id="show-period-1y" title="last year">1y</button>
+                  <button id="show-period-full" title="whole history">full</button>
                 </div>
-                <button id="show-others">${btnCaptions.showOthers}</button>
+                <button id="show-others" title="Show other files changes in the same commits">${
+                  btnCaptions.showOthers
+                }</button>
                 <div id="loading-container">Loading...</div>
             </div>
         </div>
@@ -177,6 +202,7 @@ function getWebviewContent(data, panelState) {
 
         // Elements
         const chartContainer = document.getElementById("chart");
+        const selectAuthorSelect = document.getElementById("select-author");
         const chartTypeButton = document.getElementById("change-chart-data");
         const showPeriod1wButton = document.getElementById("show-period-1w");
         const showPeriod1mButton = document.getElementById("show-period-1m");
@@ -208,18 +234,60 @@ function getWebviewContent(data, panelState) {
           panelState.showOthers ? "true" : "false"
         });
         const showPeriod = createState('string', '${panelState.showPeriod}');
+        const selectedAuthor = createState('string', '${
+          panelState.selectedAuthor
+        }', {
+          updateView: (value) => selectAuthorSelect.value = value
+        });
+
+        const updateView = () => {
+          const filteredData = filterDataByAuthor(chartData, selectedAuthor.value);
+          renderChart(filteredData, showDelta.value, minOccurencies.value);
+          renderTable(filteredData, minOccurencies.value);
+        };
+
+        const filterDataByAuthor = (data, author) => {
+          if (author === 'all') return data;
+
+          const filtered = [];
+          let hasThisAuthor = false;
+          chartData.forEach((d) => {
+            if (!d.stats.authors[author]) return;
+
+            hasThisAuthor = true;
+
+            const filteredAuthors = {};
+            filteredAuthors[author] = d.stats.authors[author];
+
+            filtered.push({
+              ...d,
+              authors: filteredAuthors,
+              data: d.data.filter((point) => point.custom.commit.author_email === author)
+            });
+          });
+
+          return filtered;
+        };
 
         // Set value changed listeners
+        selectAuthorSelect.value = selectedAuthor.value;
+        selectAuthorSelect.addEventListener('change', (e) => {
+          const value = e.target.value;
+          selectedAuthor.set(value);
+
+          updateView();
+          sendMessageToBackend({ command: 'selectedAuthor', value }, false);
+        });
+
         minOccurencies.addListener((value) => {
-          renderChart(chartData, showDelta.value, value);
-          renderTable(chartData, value);
+          updateView();
           sendMessageToBackend({ command: 'minOccurencies', value }, false);
         });
 
         showDelta.addListener((value) => {
           markBtn(chartTypeButton, value);
           chartTypeButton.textContent = value ? 'delta' : 'lines';
-          renderChart(chartData, showDelta.value, minOccurencies.value);
+          updateView();
           sendMessageToBackend({ command: 'showDelta', value }, false);
         });
         showOthers.addListener((value) => {
@@ -272,18 +340,7 @@ function getWebviewContent(data, panelState) {
         let chartData = \`${chartDataString}\`;
         chartData = chartData ? JSON.parse(chartData) : null;
         ${filesContent.renderChartTxt}
-        renderChart(chartData, showDelta.value, minOccurencies.value);
         ${filesContent.renderTableTxt}
-        renderTable(chartData, minOccurencies.value);
-
-        // scroll mousewheel
-        chartContainer.addEventListener('mousewheel', (event) => {
-          event.preventDefault();
-          console.log(event, document.body.scrollTop);
-
-          document.body.scrollTop += event.deltaY;  // Scroll vertically
-          document.body.scrollLeft += event.deltaX;
-        });
 
         // FIX SCROLLING OVER CHART BELOW
         scrollOverlay.addEventListener('mousedown', (event) => {
@@ -317,6 +374,9 @@ function getWebviewContent(data, panelState) {
             targetElement.dispatchEvent(newEvent);
           }
         }
+
+        // Initial render
+        updateView();
         </script>
       </body>
       </html>`;

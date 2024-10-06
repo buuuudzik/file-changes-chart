@@ -48,6 +48,10 @@ h1 {
   flex-wrap: wrap;
 }
 
+#select-author {
+  width: 150px;
+}
+
 #min-occurrencies {
   width: 50px;
   cursor: pointer;

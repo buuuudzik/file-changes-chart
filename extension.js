@@ -63,6 +63,7 @@ function activate(context) {
       showPeriod: "1m",
       minOccurencies: 0,
       showDelta: true,
+      selectedAuthor: "all",
     };
 
     prepareGraphData(folderPath, fileName, panelState).then((data) => {
@@ -123,6 +124,11 @@ function activate(context) {
             case "showDelta": {
               console.log("Show Delta:", message.value);
               panelState.showDelta = message.value;
+              break;
+            }
+            case "selectedAuthor": {
+              console.log("Show Selected Author:", message.value);
+              panelState.selectedAuthor = message.value;
               break;
             }
             case "openFile": {
