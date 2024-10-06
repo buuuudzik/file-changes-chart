@@ -41,7 +41,7 @@ function activate(context) {
     vscode.window.onDidChangeActiveTextEditor
   );
 
-  const showFileChangesChart = (withOthers = false) => {
+  const showFileChangesChart = async (withOthers = false) => {
     // The code you place here will be executed every time your command is executed
 
     // activeFilePath
@@ -66,107 +66,121 @@ function activate(context) {
       selectedAuthor: "all",
     };
 
-    prepareGraphData(folderPath, fileName, panelState).then((data) => {
-      const panel = vscode.window.createWebviewPanel(
-        "fileChangesChart",
-        "File Changes Chart: " +
-          fileName +
-          (panelState.showOthers ? " with others" : ""),
-        vscode.ViewColumn.One,
-        {
-          enableScripts: true,
-        }
+    let chartData = null;
+
+    try {
+      chartData = await prepareGraphData(folderPath, fileName, panelState);
+    } catch (error) {
+      vscode.window.showErrorMessage(
+        `Failed to prepare graph data: ${error.message}`
       );
+      return;
+    }
 
-      // Listen for messages from the Webview
-      panel.webview.onDidReceiveMessage(
-        async (message) => {
-          switch (message.command) {
-            case "sendMessage":
-              vscode.window.showInformationMessage(
-                `Message received: ${message.text}`
-              );
-              console.log("Message received:", message.text);
-              break;
-            case "alertMessage":
-              vscode.window.showWarningMessage(
-                `Alert from Webview: ${message.text}`
-              );
-              console.log("Alert from Webview:", message.text);
-              break;
-            case "showPeriod": {
-              panelState.showPeriod = message.value;
-              const newData = await prepareGraphData(
-                folderPath,
-                fileName,
-                panelState
-              );
-              console.log("Show Period:", message.value);
-              panel.webview.html = getWebviewContent(newData, panelState);
-              break;
-            }
-            case "showOthers": {
-              console.log("Show Others:", message.value);
-              panelState.showOthers = message.value;
-              const newData = await prepareGraphData(
-                folderPath,
-                fileName,
-                panelState
-              );
-              panel.webview.html = getWebviewContent(newData, panelState);
-              break;
-            }
-            case "minOccurencies": {
-              console.log("Min Occurencies:", message.value);
-              panelState.minOccurencies = message.value;
-              break;
-            }
-            case "showDelta": {
-              console.log("Show Delta:", message.value);
-              panelState.showDelta = message.value;
-              break;
-            }
-            case "selectedAuthor": {
-              console.log("Show Selected Author:", message.value);
-              panelState.selectedAuthor = message.value;
-              break;
-            }
-            case "openFile": {
-              console.log("Open File:", message.value, message.isRelative);
+    if (!chartData) {
+      vscode.window.showErrorMessage("No data to show.");
+      return;
+    }
 
-              try {
-                // Define the file path (relative to the workspace root)
-                const workspaceFolders = vscode.workspace.workspaceFolders;
-                if (!workspaceFolders) {
-                  vscode.window.showErrorMessage("No workspace folders found.");
-                  return;
-                }
+    const panel = vscode.window.createWebviewPanel(
+      "fileChangesChart",
+      "File Changes Chart: " +
+        fileName +
+        (panelState.showOthers ? " with others" : ""),
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+      }
+    );
 
-                const filePath = vscode.Uri.file(
-                  message.isRelative
-                    ? workspaceFolders[0].uri.fsPath + message.value
-                    : message.value
-                );
-
-                const uri = vscode.Uri.file(filePath);
-                vscode.window.showTextDocument(uri, {
-                  preview: false,
-                });
-              } catch (error) {
-                vscode.window.showErrorMessage(
-                  `Failed to open file: ${error.message}`
-                );
-              }
-              break;
-            }
+    // Listen for messages from the Webview
+    panel.webview.onDidReceiveMessage(
+      async (message) => {
+        switch (message.command) {
+          case "sendMessage":
+            vscode.window.showInformationMessage(
+              `Message received: ${message.text}`
+            );
+            console.log("Message received:", message.text);
+            break;
+          case "alertMessage":
+            vscode.window.showWarningMessage(
+              `Alert from Webview: ${message.text}`
+            );
+            console.log("Alert from Webview:", message.text);
+            break;
+          case "showPeriod": {
+            panelState.showPeriod = message.value;
+            const newData = await prepareGraphData(
+              folderPath,
+              fileName,
+              panelState
+            );
+            console.log("Show Period:", message.value);
+            panel.webview.html = getWebviewContent(newData, panelState);
+            break;
           }
-        },
-        undefined,
-        context.subscriptions
-      );
+          case "showOthers": {
+            console.log("Show Others:", message.value);
+            panelState.showOthers = message.value;
+            const newData = await prepareGraphData(
+              folderPath,
+              fileName,
+              panelState
+            );
+            panel.webview.html = getWebviewContent(newData, panelState);
+            break;
+          }
+          case "minOccurencies": {
+            console.log("Min Occurencies:", message.value);
+            panelState.minOccurencies = message.value;
+            break;
+          }
+          case "showDelta": {
+            console.log("Show Delta:", message.value);
+            panelState.showDelta = message.value;
+            break;
+          }
+          case "selectedAuthor": {
+            console.log("Show Selected Author:", message.value);
+            panelState.selectedAuthor = message.value;
+            break;
+          }
+          case "openFile": {
+            console.log("Open File:", message.value, message.isRelative);
 
-      panel.webview.html = getWebviewContent(data, panelState);
-    });
+            try {
+              // Define the file path (relative to the workspace root)
+              const workspaceFolders = vscode.workspace.workspaceFolders;
+              if (!workspaceFolders) {
+                vscode.window.showErrorMessage("No workspace folders found.");
+                return;
+              }
+
+              const filePath = vscode.Uri.file(
+                message.isRelative
+                  ? workspaceFolders[0].uri.fsPath + message.value
+                  : message.value
+              );
+
+              const uri = vscode.Uri.file(filePath);
+              vscode.window.showTextDocument(uri, {
+                preview: false,
+              });
+            } catch (error) {
+              vscode.window.showErrorMessage(
+                `Failed to open file: ${error.message}`
+              );
+            }
+            break;
+          }
+        }
+      },
+      undefined,
+      context.subscriptions
+    );
+
+    panel.webview.html = getWebviewContent(chartData, panelState);
   };
 
   // The command has been defined in the package.json file
