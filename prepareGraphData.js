@@ -167,8 +167,8 @@ async function prepareGraphData(filePath, fileName, panelState) {
       fileData.reverse();
     });
 
-    console.log("Data:", data);
-    return data;
+    console.log("Data:", data, repoRootPath);
+    return { repoRootPath, data };
   } catch (error) {
     console.error("Error while analyzing the repository:", error);
   }

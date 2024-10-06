@@ -16,6 +16,7 @@ function activate(context) {
   // This line of code will only be executed once when your extension is activated
 
   let activeFilePath = null;
+  let lastRepoRootPath = null;
 
   // Get the currently active editor's file path when the extension is activated
   if (vscode.window.activeTextEditor) {
@@ -69,7 +70,19 @@ function activate(context) {
     let chartData = null;
 
     try {
-      chartData = await prepareGraphData(folderPath, fileName, panelState);
+      const res = await prepareGraphData(folderPath, fileName, panelState);
+
+      if (!res) {
+        vscode.window.showErrorMessage("No data to show.");
+        chartData = null;
+        lastRepoRootPath = null;
+        return;
+      }
+
+      const { repoRootPath, data } = res;
+
+      chartData = data;
+      lastRepoRootPath = repoRootPath;
     } catch (error) {
       vscode.window.showErrorMessage(
         `Failed to prepare graph data: ${error.message}`
@@ -111,24 +124,26 @@ function activate(context) {
             break;
           case "showPeriod": {
             panelState.showPeriod = message.value;
-            const newData = await prepareGraphData(
+            const { data, repoRootPath } = await prepareGraphData(
               folderPath,
               fileName,
               panelState
             );
+            lastRepoRootPath = repoRootPath;
             console.log("Show Period:", message.value);
-            panel.webview.html = getWebviewContent(newData, panelState);
+            panel.webview.html = getWebviewContent(data, panelState);
             break;
           }
           case "showOthers": {
             console.log("Show Others:", message.value);
             panelState.showOthers = message.value;
-            const newData = await prepareGraphData(
+            const { data, repoRootPath } = await prepareGraphData(
               folderPath,
               fileName,
               panelState
             );
-            panel.webview.html = getWebviewContent(newData, panelState);
+            lastRepoRootPath = repoRootPath;
+            panel.webview.html = getWebviewContent(data, panelState);
             break;
           }
           case "minOccurencies": {
@@ -150,22 +165,33 @@ function activate(context) {
             console.log("Open File:", message.value, message.isRelative);
 
             try {
-              // Define the file path (relative to the workspace root)
-              const workspaceFolders = vscode.workspace.workspaceFolders;
-              if (!workspaceFolders) {
-                vscode.window.showErrorMessage("No workspace folders found.");
-                return;
+              let rootPath = null;
+
+              if (message.isRelative) {
+                // Define the file path (relative to the workspace root)
+                const workspaceFolders = vscode.workspace.workspaceFolders;
+                rootPath =
+                  workspaceFolders?.[0]?.uri?.fsPath || lastRepoRootPath;
+              }
+
+              if (!rootPath) {
+                vscode.window.showErrorMessage(
+                  "No workspace folders and no last repo file path found."
+                );
               }
 
               const filePath = vscode.Uri.file(
                 message.isRelative
-                  ? workspaceFolders[0].uri.fsPath + message.value
+                  ? rootPath + "/" + message.value
                   : message.value
               );
 
-              const uri = vscode.Uri.file(filePath);
-              vscode.window.showTextDocument(uri, {
+              const document = await vscode.workspace.openTextDocument(
+                filePath
+              );
+              vscode.window.showTextDocument(document, {
                 preview: false,
+                viewColumn: vscode.ViewColumn.Beside,
               });
             } catch (error) {
               vscode.window.showErrorMessage(

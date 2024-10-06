@@ -18,6 +18,7 @@ function getWebviewContent(data, panelState) {
   const allNames = [];
   let allAuthors = new Set();
 
+  console.log("getWebviewContent", data, panelState);
   const chartData = data
     ? Object.entries(data).map(([fileName, data]) => {
         if (!tableData[fileName]) {
