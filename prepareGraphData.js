@@ -12,58 +12,6 @@ function isValidJSON(str, logError = false) {
   }
 }
 
-function sanitizeStringValueForJSONFormat(str) {
-  if (typeof str !== "string") {
-    return "";
-  }
-
-  return str.replace(/[^\d\w]/gm, " ");
-
-  // Usuń wszystkie znaki kontrolne poza dozwolonymi w JSON-ie
-  // Dozwolone: \b, \f, \n, \r, \t
-  str = str.replace(/[\u0000-\u001F\u007F-\u009F]/g, (char) => {
-    switch (char) {
-      //   case '\b':
-      //   case '\f':
-      //   case '\n':
-      //   case '\r':
-      case "\t":
-        return char;
-      default:
-        return ""; // Usuń inne znaki kontrolne
-    }
-  });
-
-  // Ucieczkowanie znaków specjalnych zgodnie ze specyfikacją JSON
-  str = str
-    .replace(/\\/g, "\\\\") // Ucieczkuj backslash
-    .replace(/"/g, '\\"'); // Ucieczkuj cudzysłów
-
-  return str;
-}
-
-function sanitizeJSONString(jsonString) {
-  // Usuń wszystkie znaki kontrolne ASCII o wartościach poniżej 0x20 (poza prawidłowymi, jak \n, \t)
-  return jsonString.replace(/[\"\n\r\t\f`']/g, " ");
-}
-
-sanitizeJSONString = sanitizeStringValueForJSONFormat;
-
-const escapeValue = (value) => {
-  value = value || "";
-  value = value.substring(0, 100); // Limit the value to 1000 characters
-  if (!value || typeof value !== "string") {
-    return "";
-  }
-  const sanitized = isValidJSON(value) ? value : sanitizeJSONString(value);
-
-  if (!isValidJSON(sanitized, true)) {
-    console.error("Invalid JSON value:", sanitized);
-    return "";
-  }
-  return sanitized;
-};
-
 async function prepareGraphData(filePath, fileName, panelState) {
   const { showOthers, showPeriod } = panelState;
   try {
@@ -202,8 +150,8 @@ async function prepareGraphData(filePath, fileName, panelState) {
             author_email: commit.author_email,
             refs: commit.refs,
             date: commit.date,
-            // message: escapeValue(commit.message),
-            // body: escapeValue(commit.body),
+            // message: commit.message,
+            // body: commit.body,
           },
         });
       }

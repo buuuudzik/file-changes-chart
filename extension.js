@@ -61,6 +61,8 @@ function activate(context) {
     const panelState = {
       showOthers: !!withOthers,
       showPeriod: "1m",
+      minOccurencies: 0,
+      showDelta: true,
     };
 
     prepareGraphData(folderPath, fileName, panelState).then((data) => {
@@ -103,7 +105,6 @@ function activate(context) {
               break;
             }
             case "showOthers": {
-              // showPeriod.set(message.value);
               console.log("Show Others:", message.value);
               panelState.showOthers = message.value;
               const newData = await prepareGraphData(
@@ -112,6 +113,44 @@ function activate(context) {
                 panelState
               );
               panel.webview.html = getWebviewContent(newData, panelState);
+              break;
+            }
+            case "minOccurencies": {
+              console.log("Min Occurencies:", message.value);
+              panelState.minOccurencies = message.value;
+              break;
+            }
+            case "showDelta": {
+              console.log("Show Delta:", message.value);
+              panelState.showDelta = message.value;
+              break;
+            }
+            case "openFile": {
+              console.log("Open File:", message.value, message.isRelative);
+
+              try {
+                // Define the file path (relative to the workspace root)
+                const workspaceFolders = vscode.workspace.workspaceFolders;
+                if (!workspaceFolders) {
+                  vscode.window.showErrorMessage("No workspace folders found.");
+                  return;
+                }
+
+                const filePath = vscode.Uri.file(
+                  message.isRelative
+                    ? workspaceFolders[0].uri.fsPath + message.value
+                    : message.value
+                );
+
+                const uri = vscode.Uri.file(filePath);
+                vscode.window.showTextDocument(uri, {
+                  preview: false,
+                });
+              } catch (error) {
+                vscode.window.showErrorMessage(
+                  `Failed to open file: ${error.message}`
+                );
+              }
               break;
             }
           }

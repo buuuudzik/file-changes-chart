@@ -31,19 +31,26 @@ function renderChart(chartData, showDelta, minOccurencies) {
       height: 350,
       type: "line",
       zoom: {
-        // enabled: false // Disable zooming by scroll and pinch
+        enabled: true,
+        allowMouseWheelZoom: false,
       },
       events: {
         click(event, chartContext, opts) {
-          // copy to clipboard
           navigator.clipboard.writeText(JSON.stringify(opts.config.series[opts.seriesIndex].data[opts.dataPointIndex]));
-        //   console.log(opts.config.series[opts.seriesIndex]);
-        //   console.log(opts.config.series[opts.seriesIndex].name);
-        //   console.log(
-        //     opts.config.series[opts.seriesIndex].data[opts.dataPointIndex]
-        //   );
         },
       },
+      animations: {
+        enabled: false,
+      },
+    },
+    tools: {
+      download: true,
+      selection: true,
+      zoom: true,
+      zoomin: true,
+      zoomout: true,
+      pan: true,
+      reset: true,
     },
     dataLabels: {
       //   enabled: true,

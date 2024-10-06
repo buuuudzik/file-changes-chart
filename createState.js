@@ -15,7 +15,7 @@ function createState(type, defaultValue, config) {
     ...config, // min, max
     listeners: [],
     getValidDefaultValue: function () {
-      if (this.isValidValue(defaultValue)) return defaultValue;
+      if (state.isValidValue(defaultValue)) return defaultValue;
       switch (this.type) {
         case "number":
           return 0;
@@ -30,13 +30,10 @@ function createState(type, defaultValue, config) {
     isValidValue: function (value) {
       switch (state.type) {
         case "number":
-          return (
-            isValidNumber(value) &&
-            "min" in state &&
-            value >= state.min &&
-            "max" in state &&
-            value <= state.max
-          );
+          if (!isValidNumber(value)) return false;
+          if ("min" in state && value < state.min) return false;
+          if ("max" in state && value > state.max) return false;
+          return true;
         case "string":
           return isValidString(value) ? value : "";
         case "boolean":
@@ -47,7 +44,8 @@ function createState(type, defaultValue, config) {
     },
     set: function (value) {
       state.value = state.isValidValue(value) ? value : 0;
-      state.listeners.forEach((listener) => listener(value));
+      if (this.updateView) this.updateView(state.value);
+      state.listeners.forEach((listener) => listener(state.value));
     },
     toggle: function () {
       state.set(!state.value);
@@ -67,6 +65,8 @@ function createState(type, defaultValue, config) {
     defaultValue = state.getValidDefaultValue();
     state.set(defaultValue);
   }
+
+  if (this.updateView) this.updateView(state.value);
 
   return state;
 }
