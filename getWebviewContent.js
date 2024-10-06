@@ -3,6 +3,11 @@ let renderChartTxt = null;
 let renderTableTxt = null;
 let createStateTxt = null;
 
+const localPanelState = {
+  minOccurencies: 0,
+  showDelta: true,
+};
+
 function getWebviewContent(data, panelState) {
   if (renderChartTxt === null) {
     renderChartTxt = fs.readFileSync(__dirname + "/renderChart.js", "utf8");
@@ -87,9 +92,8 @@ function getWebviewContent(data, panelState) {
 
   panelState = {
     ...panelState,
-    minOccurencies: 0,
-    showDelta: true,
-  }
+    ...localPanelState,
+  };
 
   return `<!DOCTYPE html>
       <html lang="en">
@@ -219,6 +223,12 @@ function getWebviewContent(data, panelState) {
         <div id="table-container"></div>
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         <script>
+        // Helper functions
+        const markBtn = (button, isActive) => {
+          button.style.backgroundColor = isActive ? '#6fc056' :'white' ;
+          button.style.color = isActive ? 'white' : 'black';
+        };
+
         ${createStateTxt}
 
         // Create states
@@ -235,12 +245,15 @@ function getWebviewContent(data, panelState) {
 
         // Set value changed listeners
         minOccurencies.addListener((value) => {
-          console.log('minOccurencies changed:', value);
+          localPanelState.minOccurencies = value;
           renderChart(chartData, showDelta.value, value);
           renderTable(chartData, value);
         });
 
         showDelta.addListener((value) => {
+          localPanelState.showDelta = value;
+          markBtn(chartTypeButton, value);
+          chartTypeButton.textContent = value ? 'delta' : 'lines';
           renderChart(chartData, showDelta.value, minOccurencies.value);
         });
         showOthers.addListener((value) => {
@@ -268,6 +281,9 @@ function getWebviewContent(data, panelState) {
         const minOccurrenciesInput = document.getElementById("min-occurrencies");
         const loadingContainer = document.getElementById("loading-container");
 
+        markBtn(showOthersButton, showOthers.value);
+        markBtn(chartTypeButton, showDelta.value);
+
         const periodButtons = [
           showPeriod1wButton,
           showPeriod1mButton,
@@ -276,11 +292,6 @@ function getWebviewContent(data, panelState) {
           showPeriod1yButton,
           showPeriodFullButton
         ];
-
-        const markBtn = (button, isActive) => {
-          button.style.backgroundColor = isActive ? '#6fc056' :'white' ;
-          button.style.color = isActive ? 'white' : 'black';
-        };
 
         const markActivePeriodButton = (activeButton) => {
           periodButtons.forEach(button => {
