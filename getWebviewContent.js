@@ -381,6 +381,18 @@ function getWebviewContent(data, panelState) {
           }
         }
 
+        // Add a listener for mouseover event on the proxy overlay
+        let lastMouseOverTime = 0;
+        setInterval(() => {
+          if (Date.now() - lastMouseOverTime > 1000 && scrollOverlay.style.pointerEvents === 'none') {
+            scrollOverlay.style.pointerEvents = 'auto';
+          }
+        }, 1000);
+        scrollOverlay.addEventListener('mouseover', (event) => {
+          lastMouseOverTime = Date.now();
+          scrollOverlay.style.pointerEvents = 'none';
+        });
+
         // Initial render
         updateView();
         </script>
