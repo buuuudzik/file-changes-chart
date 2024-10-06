@@ -107,6 +107,12 @@ async function prepareGraphData(filePath, fileName, panelState) {
         case "1y":
           sinceDate.setFullYear(sinceDate.getFullYear() - 1);
           break;
+        case "2y":
+          sinceDate.setFullYear(sinceDate.getFullYear() - 2);
+          break;
+        case "5y":
+          sinceDate.setFullYear(sinceDate.getFullYear() - 5);
+          break;
         default:
           break;
       }

@@ -175,6 +175,8 @@ function getWebviewContent(data, panelState) {
                   <button id="show-period-3m" title="last 3 months">3m</button>
                   <button id="show-period-6m" title="last 6 months">6m</button>
                   <button id="show-period-1y" title="last year">1y</button>
+                  <button id="show-period-2y" title="last 2 years">2y</button>
+                  <button id="show-period-5y" title="last 5 years">5y</button>
                   <button id="show-period-full" title="whole history">full</button>
                 </div>
                 <button id="show-others" title="Show other files changes in the same commits">${
@@ -209,6 +211,8 @@ function getWebviewContent(data, panelState) {
         const showPeriod3mButton = document.getElementById("show-period-3m");
         const showPeriod6mButton = document.getElementById("show-period-6m");
         const showPeriod1yButton = document.getElementById("show-period-1y");
+        const showPeriod2yButton = document.getElementById("show-period-2y");
+        const showPeriod5yButton = document.getElementById("show-period-5y");
         const showPeriodFullButton = document.getElementById("show-period-full");
         const showOthersButton = document.getElementById("show-others");
         const minOccurrenciesInput = document.getElementById("min-occurrencies");
@@ -305,6 +309,8 @@ function getWebviewContent(data, panelState) {
           showPeriod3mButton,
           showPeriod6mButton,
           showPeriod1yButton,
+          showPeriod2yButton,
+          showPeriod5yButton,
           showPeriodFullButton
         ];
 
