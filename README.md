@@ -6,6 +6,7 @@ Maintaining large codebases often involves understanding how different files int
 
 ## Screenshots
 ![Preview](screenshot.png)
+![Preview](recording.gif)
 
 ## Features
 - Visualize File History:
@@ -28,6 +29,7 @@ The extension parses your Git commit history to:
 - Activate the extension via the command palette or toolbar.
 - View the generated chart displaying the file’s change history and related files.
 - Interact with the chart to explore commit details and file correlations.
+- Check which developer modified the file most frequently, the most significantly, or at a key moment.
 
 ## Supported commands
 Type `CTRL+Shift+P` (on Windows/Linux) and `CMD+Shift+P` (on Mac) and choose one of these command:

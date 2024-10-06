@@ -65,6 +65,7 @@ function activate(context) {
       minOccurencies: 0,
       showDelta: true,
       selectedAuthor: "all",
+      filePath: activeFilePath,
     };
 
     let chartData = null;

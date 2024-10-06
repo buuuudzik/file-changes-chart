@@ -79,25 +79,40 @@ function renderTable(chartData, minOccurencies) {
         return td;
       };
 
-      const nameTd = createTd(name, tr, (td, e) => {
-        if (e.ctrlKey || e.metaKey) {
-          sendMessageToBackend({
-            command: "openFile",
-            value: longName,
-            isRelative: true,
-          });
-          return;
-        }
-
-        copyText(longName);
-      });
+      const nameTd = createTd(name, tr);
       nameTd.title = longName;
+      nameTd.className = "file-name";
+
+      const buttonsContainer = document.createElement("div");
+      buttonsContainer.className = "file-name-buttons";
+      const copyBtn = document.createElement("button");
+      copyBtn.innerText = "Copy";
+      copyBtn.addEventListener("click", () => copyText(longName));
+      buttonsContainer.appendChild(copyBtn);
+
+      const openBtn = document.createElement("button");
+      openBtn.innerText = "Open";
+      openBtn.addEventListener("click", () => {
+        sendMessageToBackend({
+          command: "openFile",
+          value: longName,
+          isRelative: true,
+        });
+      });
+      buttonsContainer.appendChild(openBtn);
+
+      nameTd.appendChild(buttonsContainer);
+
       createTd(stats.occurrences);
       createTd(stats.minLines);
       createTd(stats.maxLines);
       createTd(stats.lastValue);
-      const authorsTd = createTd(authorsColumn, tr, () => copyText(authorEmail));
-      authorsTd.title = authors.map(([email, count]) => `${email} (${count}c)`).join("\n");
+      const authorsTd = createTd(authorsColumn, tr, () =>
+        copyText(authorEmail)
+      );
+      authorsTd.title = authors
+        .map(([email, count]) => `${email} (${count}c)`)
+        .join("\n");
 
       tBody.appendChild(tr);
     });

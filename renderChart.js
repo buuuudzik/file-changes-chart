@@ -1,5 +1,5 @@
 let chart = null;
-function renderChart(chartData, showDelta, minOccurencies) {
+function renderChart(chartData, showDelta, minOccurencies, filePath) {
   console.log("chartData", chartData, showDelta, minOccurencies);
   if (chart) {
     chart.destroy();
@@ -25,18 +25,24 @@ function renderChart(chartData, showDelta, minOccurencies) {
     series = series.filter((d) => d.stats.occurrences >= minOccurencies);
   }
 
+  const presentedFileName = filePath.split("/").pop();
+
   var options = {
     series,
     chart: {
       height: 350,
-      type: "line",
+      type: showDelta ? "bar" : "line",
       zoom: {
         enabled: true,
         allowMouseWheelZoom: false,
       },
       events: {
         click(event, chartContext, opts) {
-          navigator.clipboard.writeText(JSON.stringify(opts.config.series[opts.seriesIndex].data[opts.dataPointIndex]));
+          navigator.clipboard.writeText(
+            JSON.stringify(
+              opts.config.series[opts.seriesIndex].data[opts.dataPointIndex]
+            )
+          );
         },
       },
       animations: {
@@ -53,14 +59,14 @@ function renderChart(chartData, showDelta, minOccurencies) {
       reset: true,
     },
     dataLabels: {
-      //   enabled: true,
+      enabled: false,
     },
     stroke: {
       curve: "stepline",
       width: 1, // Sets line width to 5 pixels for all series
     },
     title: {
-      text: "File Changes Chart",
+      text: presentedFileName || "File Changes Chart",
       align: "left",
     },
     grid: {
@@ -72,21 +78,29 @@ function renderChart(chartData, showDelta, minOccurencies) {
     xaxis: {
       type: "datetime",
     },
+    yaxis: {
+      title: {
+        text: showDelta ? "Difference in Lines (max 100)" : "Lines in File",
+      },
+    },
     tooltip: {
       custom: function ({ series, seriesIndex, dataPointIndex, w }) {
         var data = w.globals.series[seriesIndex][dataPointIndex];
         var customData =
-          w.globals.initialSeries[seriesIndex].data[dataPointIndex].custom;
+          w.globals.initialSeries[seriesIndex]?.data?.[dataPointIndex]?.custom;
+
+        const { hash, author_name, author_email, refs, message, body } =
+          customData?.commit || {};
 
         return `<div class="tooltip" style="padding: 5px;">
             <span>${customData?.fileName}</span>
             <span>${data}lines</span><br>
-            <span>${customData.commit.hash || ""}</span><br>
-            <span>${customData.commit.author_name || ""}</span><br>
-            <span>${customData.commit.author_email || ""}</span><br>
-            <span>${customData.commit.refs || ""}</span><br>
-            <span>${customData.commit.message || ""}</span><br>
-            <span>${customData.commit.body || ""}</span><br>
+            <span>${hash || ""}</span><br>
+            <span>${author_name || ""}</span><br>
+            <span>${author_email || ""}</span><br>
+            <span>${refs || ""}</span><br>
+            <span>${message || ""}</span><br>
+            <span>${body || ""}</span><br>
             <span>${customData?.date || ""}</span><br>
           </div>`;
       },

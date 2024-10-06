@@ -247,7 +247,7 @@ function getWebviewContent(data, panelState) {
 
         const updateView = () => {
           const filteredData = filterDataByAuthor(chartData, selectedAuthor.value);
-          renderChart(filteredData, showDelta.value, minOccurencies.value);
+          renderChart(filteredData, showDelta.value, minOccurencies.value, "${panelState.filePath}");
           renderTable(filteredData, minOccurencies.value);
         };
 
