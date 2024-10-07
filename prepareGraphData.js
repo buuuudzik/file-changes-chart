@@ -132,11 +132,14 @@ async function prepareGraphData(filePath, fileName, panelState) {
         ? await getFilesFromCommit(commit.hash, true)
         : [];
 
-      if (!commitsInfo[commit.hash]) {
-        commitsInfo[commit.hash] = commit;
-      }
-
       const filesToCheck = [repoFilePath, ...restFilesFromCommit];
+
+      if (!commitsInfo[commit.hash]) {
+        commitsInfo[commit.hash] = {
+          ...commit,
+          fileNames: filesToCheck,
+        };
+      }
 
       for (const file of filesToCheck) {
         // console.log(`Processing commit: ${commit.hash} for file: ${file}`);

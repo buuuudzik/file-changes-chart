@@ -278,7 +278,7 @@ function getWebviewContent(data, panelState) {
             panelState.filePath
           }", commitsInfo, selectCommit);
           renderTable(filteredData, minOccurencies.value, commitsInfo);
-          renderCommitInfo(commitsInfo[selectedCommit], commitInfoContainer);
+          renderCommitInfo(commitsInfo[selectedCommit], showOthers.value, commitInfoContainer);
         };
 
         const filterDataByAuthor = (data, author) => {

@@ -1,4 +1,4 @@
-function renderCommitInfo(commit, container) {
+function renderCommitInfo(commit, showOthers, container) {
   container.innerHTML = "";
 
   if (!commit) {
@@ -7,7 +7,7 @@ function renderCommitInfo(commit, container) {
 }
 container.style.display = "flex";
 
-  const { date, author_name, author_email, refs, message, body, hash } = commit;
+  const { date, author_name, author_email, refs, message, body, hash, fileNames } = commit;
 
   const labelWithTextContent = (label, content, container) => {
     const labelContainer = document.createElement("div");
@@ -53,6 +53,10 @@ container.style.display = "flex";
   labelWithTextContent("Refs", refs, bodyContainer);
   labelWithTextContent("Message", message, bodyContainer);
   labelWithTextContent("Body", body, bodyContainer);
+
+  if (showOthers) {
+    labelWithTextContent("Files", fileNames.join("\n"), bodyContainer);
+  }
 
   container.appendChild(bodyContainer);
 }
