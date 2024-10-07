@@ -72,6 +72,7 @@ function getWebviewContent(data, panelState) {
             };
 
             stats.lastValue = d.lines;
+            stats.existingFile = d.existingFile;
 
             allAuthors.add(d.commit.author_email);
 

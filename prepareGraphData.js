@@ -1,16 +1,5 @@
 const simpleGit = require("simple-git");
-
-function isValidJSON(str, logError = false) {
-  try {
-    JSON.parse(`{"value":"${str}"}`);
-    return true;
-  } catch (e) {
-    if (logError) {
-      console.log("Error parsing JSON:", e, str);
-    }
-    return false;
-  }
-}
+const fs = require("fs");
 
 async function prepareGraphData(filePath, fileName, panelState) {
   const { showOthers, showPeriod } = panelState;
@@ -135,6 +124,8 @@ async function prepareGraphData(filePath, fileName, panelState) {
 
     console.log(`Processing file: ${repoFilePath}`);
 
+    const existingFiles = new Set();
+
     for (const commit of log.all) {
       const restFilesFromCommit = showOthers
         ? await getFilesFromCommit(commit.hash, true)
@@ -145,11 +136,15 @@ async function prepareGraphData(filePath, fileName, panelState) {
       for (const file of filesToCheck) {
         // console.log(`Processing commit: ${commit.hash} for file: ${file}`);
         const linesCount = await getLinesInFile(commit.hash, file);
-        if (!data[file]) data[file] = [];
+        if (!data[file]) {
+          fs.existsSync(repoRootPath + "/" + file) && existingFiles.add(file);
+          data[file] = [];
+        }
 
         data[file].push({
           date: commit.date,
           lines: linesCount,
+          existingFile: existingFiles.has(file),
           commit: {
             hash: commit.hash,
             author_name: commit.author_name,
@@ -163,8 +158,9 @@ async function prepareGraphData(filePath, fileName, panelState) {
       }
     }
 
-    Object.entries(data).forEach(([fileName, fileData]) => {
+    Object.values(data).forEach((fileData) => {
       fileData.reverse();
+      fileData.sort((a, b) => new Date(a.date) - new Date(b.date));
     });
 
     console.log("Data:", data, repoRootPath);

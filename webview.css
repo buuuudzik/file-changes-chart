@@ -114,6 +114,10 @@ td.file-name {
   align-items: center;
 }
 
+td.file-name.not-existing {
+  color: grey;
+}
+
 .file-name-buttons {
     display: flex;
     justify-content: space-between;

@@ -82,6 +82,10 @@ function renderTable(chartData, minOccurencies) {
       const nameTd = createTd(name, tr);
       nameTd.title = longName;
       nameTd.className = "file-name";
+      if (!stats.existingFile) {
+        nameTd.classList.add("not-existing");
+        nameTd.title += " (not existing)";
+      }
 
       const buttonsContainer = document.createElement("div");
       buttonsContainer.className = "file-name-buttons";
@@ -90,16 +94,19 @@ function renderTable(chartData, minOccurencies) {
       copyBtn.addEventListener("click", () => copyText(longName));
       buttonsContainer.appendChild(copyBtn);
 
-      const openBtn = document.createElement("button");
-      openBtn.innerText = "Open";
-      openBtn.addEventListener("click", () => {
-        sendMessageToBackend({
-          command: "openFile",
-          value: longName,
-          isRelative: true,
+      let openBtn = null;
+      if (stats.existingFile) {
+        openBtn = document.createElement("button");
+        openBtn.innerText = "Open";
+        openBtn.addEventListener("click", () => {
+          sendMessageToBackend({
+            command: "openFile",
+            value: longName,
+            isRelative: true,
+          });
         });
-      });
-      buttonsContainer.appendChild(openBtn);
+        buttonsContainer.appendChild(openBtn);
+      }
 
       nameTd.appendChild(buttonsContainer);
 

@@ -31,7 +31,15 @@ function renderChart(chartData, showDelta, minOccurencies, filePath) {
     series,
     chart: {
       height: 350,
-      type: showDelta ? "bar" : "line",
+      ...(showDelta
+        ? {
+            type: "bar",
+            // stacked: true,
+            // stackType: "100%",
+          }
+        : {
+            type: "line",
+          }),
       zoom: {
         enabled: true,
         allowMouseWheelZoom: false,
@@ -82,6 +90,29 @@ function renderChart(chartData, showDelta, minOccurencies, filePath) {
       title: {
         text: showDelta ? "Difference in Lines (max 100)" : "Lines in File",
       },
+      min: 0,
+    },
+    plotOptions: {
+      bar: {
+        columnWidth: "10px",
+      },
+    },
+    annotations: {
+      yaxis: [
+        {
+          y: 0,
+          borderColor: 'grey',
+          borderWidth: 2,
+          label: {
+            borderColor: 'grey',
+            style: {
+              color: '#fff',
+              background: 'grey'
+            },
+            // text: 'Zero Line'
+          }
+        }
+      ]
     },
     tooltip: {
       custom: function ({ series, seriesIndex, dataPointIndex, w }) {
