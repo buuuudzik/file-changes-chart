@@ -121,6 +121,7 @@ async function prepareGraphData(filePath, fileName, panelState) {
     console.log("Log:", log);
 
     const data = {};
+    const commitsInfo = {};
 
     console.log(`Processing file: ${repoFilePath}`);
 
@@ -130,6 +131,10 @@ async function prepareGraphData(filePath, fileName, panelState) {
       const restFilesFromCommit = showOthers
         ? await getFilesFromCommit(commit.hash, true)
         : [];
+
+      if (!commitsInfo[commit.hash]) {
+        commitsInfo[commit.hash] = commit;
+      }
 
       const filesToCheck = [repoFilePath, ...restFilesFromCommit];
 
@@ -164,7 +169,7 @@ async function prepareGraphData(filePath, fileName, panelState) {
     });
 
     console.log("Data:", data, repoRootPath);
-    return { repoRootPath, data };
+    return { repoRootPath, data, commitsInfo };
   } catch (error) {
     console.error("Error while analyzing the repository:", error);
   }

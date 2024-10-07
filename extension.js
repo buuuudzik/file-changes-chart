@@ -69,31 +69,32 @@ function activate(context) {
     };
 
     let chartData = null;
+    let commitsInfo = null;
 
-    try {
-      const res = await prepareGraphData(folderPath, fileName, panelState);
+    async function replacePanelData() {
+      try {
+        const res = await prepareGraphData(folderPath, fileName, panelState);
 
-      if (!res) {
-        vscode.window.showErrorMessage("No data to show.");
-        chartData = null;
-        lastRepoRootPath = null;
-        return;
+        if (!res) {
+          vscode.window.showErrorMessage("No data to show.");
+          chartData = null;
+          lastRepoRootPath = null;
+          return;
+        }
+
+        chartData = res.data;
+        lastRepoRootPath = res.repoRootPath;
+        commitsInfo = res.commitsInfo;
+
+        panel.webview.html = getWebviewContent(chartData, panelState);
+
+        return true;
+      } catch (err) {
+        vscode.window.showErrorMessage(
+          `Failed to prepare graph data: ${err.message}`
+        );
+        return false;
       }
-
-      const { repoRootPath, data } = res;
-
-      chartData = data;
-      lastRepoRootPath = repoRootPath;
-    } catch (error) {
-      vscode.window.showErrorMessage(
-        `Failed to prepare graph data: ${error.message}`
-      );
-      return;
-    }
-
-    if (!chartData) {
-      vscode.window.showErrorMessage("No data to show.");
-      return;
     }
 
     const panel = vscode.window.createWebviewPanel(
@@ -124,42 +125,44 @@ function activate(context) {
             console.log("Alert from Webview:", message.text);
             break;
           case "showPeriod": {
-            panelState.showPeriod = message.value;
-            const { data, repoRootPath } = await prepareGraphData(
-              folderPath,
-              fileName,
-              panelState
-            );
-            lastRepoRootPath = repoRootPath;
             console.log("Show Period:", message.value);
-            panel.webview.html = getWebviewContent(data, panelState);
+            panelState.showPeriod = message.value;
+            replacePanelData();
             break;
           }
           case "showOthers": {
             console.log("Show Others:", message.value);
             panelState.showOthers = message.value;
-            const { data, repoRootPath } = await prepareGraphData(
-              folderPath,
-              fileName,
-              panelState
-            );
-            lastRepoRootPath = repoRootPath;
-            panel.webview.html = getWebviewContent(data, panelState);
+            replacePanelData();
             break;
           }
           case "minOccurencies": {
             console.log("Min Occurencies:", message.value);
             panelState.minOccurencies = message.value;
+            replacePanelData();
             break;
           }
           case "showDelta": {
             console.log("Show Delta:", message.value);
             panelState.showDelta = message.value;
+            replacePanelData();
             break;
           }
           case "selectedAuthor": {
             console.log("Show Selected Author:", message.value);
             panelState.selectedAuthor = message.value;
+            replacePanelData();
+            break;
+          }
+          case "webviewReady": {
+            console.log("Web view is ready");
+            panel.webview.postMessage({
+              command: "commitsInfo",
+              value: commitsInfo,
+            });
+            // Wyslij dane do webview
+            // commit data
+            // i moze chartData
             break;
           }
           case "openFile": {
@@ -207,7 +210,7 @@ function activate(context) {
       context.subscriptions
     );
 
-    panel.webview.html = getWebviewContent(chartData, panelState);
+    replacePanelData();
   };
 
   // The command has been defined in the package.json file

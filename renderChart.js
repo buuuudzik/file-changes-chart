@@ -1,5 +1,12 @@
 let chart = null;
-function renderChart(chartData, showDelta, minOccurencies, filePath) {
+function renderChart(
+  chartData,
+  showDelta,
+  minOccurencies,
+  filePath,
+  commitsInfo,
+  selectCommit
+) {
   console.log("chartData", chartData, showDelta, minOccurencies);
   if (chart) {
     chart.destroy();
@@ -46,11 +53,10 @@ function renderChart(chartData, showDelta, minOccurencies, filePath) {
       },
       events: {
         click(event, chartContext, opts) {
-          navigator.clipboard.writeText(
-            JSON.stringify(
-              opts.config.series[opts.seriesIndex].data[opts.dataPointIndex]
-            )
-          );
+          const data =
+            opts.config.series[opts.seriesIndex].data[opts.dataPointIndex];
+          selectCommit(data.custom.commit.hash);
+          navigator.clipboard.writeText(JSON.stringify(data));
         },
       },
       animations: {
@@ -101,18 +107,18 @@ function renderChart(chartData, showDelta, minOccurencies, filePath) {
       yaxis: [
         {
           y: 0,
-          borderColor: 'grey',
+          borderColor: "grey",
           borderWidth: 2,
           label: {
-            borderColor: 'grey',
+            borderColor: "grey",
             style: {
-              color: '#fff',
-              background: 'grey'
+              color: "#fff",
+              background: "grey",
             },
             // text: 'Zero Line'
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     tooltip: {
       custom: function ({ series, seriesIndex, dataPointIndex, w }) {
@@ -120,8 +126,10 @@ function renderChart(chartData, showDelta, minOccurencies, filePath) {
         var customData =
           w.globals.initialSeries[seriesIndex]?.data?.[dataPointIndex]?.custom;
 
-        const { hash, author_name, author_email, refs, message, body } =
+        const { hash, author_name, author_email, refs } =
           customData?.commit || {};
+        // const message = commitsInfo?.[hash]?.message;
+        // const body = commitsInfo?.[hash]?.body;
 
         return `<div class="tooltip" style="padding: 5px;">
             <span>${customData?.fileName}</span>
@@ -130,8 +138,6 @@ function renderChart(chartData, showDelta, minOccurencies, filePath) {
             <span>${author_name || ""}</span><br>
             <span>${author_email || ""}</span><br>
             <span>${refs || ""}</span><br>
-            <span>${message || ""}</span><br>
-            <span>${body || ""}</span><br>
             <span>${customData?.date || ""}</span><br>
           </div>`;
       },

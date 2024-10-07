@@ -119,19 +119,19 @@ td.file-name.not-existing {
 }
 
 .file-name-buttons {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
 }
 
 button {
-    cursor: pointer;
-    padding: 3px;
-    background-color: white;
-    color: black;
-    border: 1px solid green;
-    border-radius: 3px;
+  cursor: pointer;
+  padding: 3px;
+  background-color: white;
+  color: black;
+  border: 1px solid green;
+  border-radius: 3px;
 }
 
 tr:nth-child(even) {
@@ -166,4 +166,43 @@ button {
   transform: translate(-50%, -50%);
   box-shadow: 2px 2px 6px grey;
   z-index: 1000;
+}
+
+#commit-info-container {
+  background: #f4f4f4;
+  color: black;
+  padding: 10px;
+  margin: 10px;
+  overflow-x: auto;
+  box-shadow: 2px 2px 6px #456646;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.commit-info-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.commit-info-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #424242;
+}
+
+.hash-container {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.commit-info-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label-container > .label {
+  font-weight: bold;
 }

@@ -7,6 +7,14 @@ function getWebviewContent(data, panelState) {
     { name: "renderTableTxt", src: __dirname + "/renderTable.js" },
     { name: "createStateTxt", src: __dirname + "/createState.js" },
     { name: "webviewStyles", src: __dirname + "/webview.css" },
+    {
+      name: "handleMessageInWebviewTxt",
+      src: __dirname + "/handleMessageInWebview.js",
+    },
+    {
+      name: "renderCommitInfoTxt",
+      src: __dirname + "/renderCommitInfo.js",
+    },
   ].forEach(({ name, src }) => {
     if (!filesContent[name]) {
       filesContent[name] = fs.readFileSync(src, "utf8");
@@ -192,6 +200,7 @@ function getWebviewContent(data, panelState) {
           <div id="scroll-overlay"></div>
         </div>
         <div id="table-container"></div>
+        <div id="commit-info-container"></div>
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         <script>
         // Communicate with the backend
@@ -203,6 +212,22 @@ function getWebviewContent(data, panelState) {
           if (!showLoading) return;
           loadingContainer.style.display = 'flex';
         }
+
+        let commitsInfo = {};
+        const changeCommitsInfo = (newCommitsInfo) => {
+          commitsInfo = newCommitsInfo;
+          updateView();
+        };
+        let selectedCommit = null;
+        const selectCommit = (hash) => {
+          selectedCommit = hash;
+          updateView();
+        };
+        ${filesContent.handleMessageInWebviewTxt}
+        window.addEventListener('message', (message) => {
+          const ctx = { changeCommitsInfo };
+          handleMessageInWebview(message, ctx);
+        });
 
         // Elements
         const chartContainer = document.getElementById("chart");
@@ -220,6 +245,7 @@ function getWebviewContent(data, panelState) {
         const minOccurrenciesInput = document.getElementById("min-occurrencies");
         const loadingContainer = document.getElementById("loading-container");
         const scrollOverlay = document.getElementById("scroll-overlay");
+        const commitInfoContainer = document.getElementById("commit-info-container");
 
         // Helper functions
         const markBtn = (button, isActive) => {
@@ -248,8 +274,11 @@ function getWebviewContent(data, panelState) {
 
         const updateView = () => {
           const filteredData = filterDataByAuthor(chartData, selectedAuthor.value);
-          renderChart(filteredData, showDelta.value, minOccurencies.value, "${panelState.filePath}");
-          renderTable(filteredData, minOccurencies.value);
+          renderChart(filteredData, showDelta.value, minOccurencies.value, "${
+            panelState.filePath
+          }", commitsInfo, selectCommit);
+          renderTable(filteredData, minOccurencies.value, commitsInfo);
+          renderCommitInfo(commitsInfo[selectedCommit], commitInfoContainer);
         };
 
         const filterDataByAuthor = (data, author) => {
@@ -349,6 +378,7 @@ function getWebviewContent(data, panelState) {
         chartData = chartData ? JSON.parse(chartData) : null;
         ${filesContent.renderChartTxt}
         ${filesContent.renderTableTxt}
+        ${filesContent.renderCommitInfoTxt}
 
         // FIX SCROLLING OVER CHART BELOW
         scrollOverlay.addEventListener('mousedown', (event) => {
@@ -397,6 +427,8 @@ function getWebviewContent(data, panelState) {
 
         // Initial render
         updateView();
+
+        sendMessageToBackend({ command: 'webviewReady' }, false);
         </script>
       </body>
       </html>`;
