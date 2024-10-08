@@ -85,15 +85,26 @@ h1 {
 #table-container {
   background: #f4f4f4;
   color: black;
-  padding: 10px;
   margin: 10px;
-  overflow-x: auto;
+  overflow: auto;
   box-shadow: 2px 2px 6px #456646;
+  height: 300px;
+}
+
+#table-container thead {
+  position: sticky;
+  top: 0;
+}
+
+#table-container thead th {
+  border-color: #a4a4a4 !important;
+  background-color: lightgrey;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse; /* Removes the default spacing between cells */
+  border-collapse: separate; /* Don't collapse */
+  border-spacing: 0; /* Removes the default spacing between cells */
 }
 
 th,
@@ -101,6 +112,7 @@ td {
   border: 1px solid #ddd; /* Adds a border around cells */
   padding: 5px; /* Adds space inside cells */
   text-align: left; /* Aligns text to the left */
+  margin: 0;
 }
 
 th {
@@ -209,7 +221,7 @@ button {
 .message-container {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 10px;
 }
 
 .label-container > .label {
