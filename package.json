@@ -1,43 +1,43 @@
 {
-  "name": "file-changes-chart",
-  "displayName": "file-changes-chart",
-  "publisher": "buuuudzik",
-  "description": "",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/buuuudzik/file-changes-chart"
-  },
-  "version": "0.5.1",
-  "engines": {
-    "vscode": "^1.93.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [],
-  "main": "./extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "file-changes-chart.showFileChangesChart",
-        "title": "FCC: Show File Changes Chart"
-      }
-    ]
-  },
-  "scripts": {
-    "lint": "eslint .",
-    "pretest": "npm run lint",
-    "test": "vscode-test"
-  },
-  "devDependencies": {
-    "@types/mocha": "^10.0.8",
-    "@types/node": "20.x",
-    "@types/vscode": "^1.93.0",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1",
-    "eslint": "^9.11.1"
-  },
-  "dependencies": {
-    "simple-git": "^3.27.0"
-  }
+ "name": "file-changes-chart",
+ "displayName": "file-changes-chart",
+ "publisher": "buuuudzik",
+ "description": "",
+ "repository": {
+  "type": "git",
+  "url": "https://github.com/buuuudzik/file-changes-chart"
+ },
+ "version": "0.5.1",
+ "engines": {
+  "vscode": "^1.93.0"
+ },
+ "categories": [
+  "Other"
+ ],
+ "activationEvents": [],
+ "main": "./extension.js",
+ "contributes": {
+  "commands": [
+   {
+    "command": "file-changes-chart.showFileChangesChart",
+    "title": "FCC: Show File Changes Chart"
+   }
+  ]
+ },
+ "scripts": {
+  "lint": "eslint .",
+  "pretest": "npm run lint",
+  "test": "vscode-test"
+ },
+ "devDependencies": {
+  "@types/mocha": "^10.0.8",
+  "@types/node": "20.x",
+  "@types/vscode": "^1.93.0",
+  "@vscode/test-cli": "^0.0.10",
+  "@vscode/test-electron": "^2.4.1",
+  "eslint": "^9.11.1"
+ },
+ "dependencies": {
+  "simple-git": "^3.27.0"
+ }
 }
