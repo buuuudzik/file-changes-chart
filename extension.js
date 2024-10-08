@@ -82,6 +82,18 @@ function activate(context) {
       );
     };
 
+    const sendAllDataToWebview = (panel) => {
+      panel.webview.postMessage({
+        command: "chartData",
+        value: chartData,
+      });
+
+      panel.webview.postMessage({
+        command: "commitsInfo",
+        value: commitsInfo,
+      });
+    };
+
     async function replacePanelData() {
       try {
         const panelStateSnapshot = { ...panelState };
@@ -106,17 +118,9 @@ function activate(context) {
         if (!panelInitialized) {
           panelInitialized = true;
           panel.webview.html = getWebviewContent(chartData, panelState);
-        } else {
-          panel.webview.postMessage({
-            command: "chartData",
-            value: chartData,
-          });
         }
 
-        panel.webview.postMessage({
-          command: "commitsInfo",
-          value: commitsInfo,
-        });
+        sendAllDataToWebview(panel);
 
         return true;
       } catch (err) {
@@ -186,13 +190,7 @@ function activate(context) {
           }
           case "webviewReady": {
             console.log("Web view is ready");
-            panel.webview.postMessage({
-              command: "commitsInfo",
-              value: commitsInfo,
-            });
-            // Wyslij dane do webview
-            // commit data
-            // i moze chartData
+            // sendAllDataToWebview(panel);
             break;
           }
           case "openFile": {
