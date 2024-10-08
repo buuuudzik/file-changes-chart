@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/buuuudzik/file-changes-chart"
   },
-  "version": "0.4.1",
+  "version": "0.5.1",
   "engines": {
     "vscode": "^1.93.0"
   },
