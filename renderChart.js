@@ -164,13 +164,15 @@ function renderChart(
     },
   };
 
+  const unselectAllBtn = document.getElementById("chart-unselect-all-button");
+
   if (!listenersInitialized) {
     listenersInitialized = true;
 
-    document
-      .getElementById("chart-unselect-all-button")
-      .addEventListener("click", unselectAllSeries);
+    unselectAllBtn.addEventListener("click", unselectAllSeries);
   }
+
+  unselectAllBtn.style.display = series.length > 1 ? "flex" : "none";
 
   chart = new ApexCharts(document.querySelector("#chart"), options);
   chart.render();
