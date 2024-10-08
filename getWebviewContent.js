@@ -79,15 +79,17 @@ function getWebviewContent(data, panelState) {
                 <button id="show-others" title="Show other files changes in the same commits">${
                   btnCaptions.showOthers
                 }</button>
-                <div id="loading-container">Loading...</div>
             </div>
         </div>
         <div id="chart-container">
           <div id="chart"></div>
           <div id="scroll-overlay"></div>
+          <button id="chart-unselect-all-button">Unselect All</button>
         </div>
         <div id="table-container"></div>
         <div id="commit-info-container"></div>
+        <div id="loading-container">Loading...</div>
+        <div id="no-data-info">No data for the specified period</div>
         <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
         <script>
         const initialState = JSON.parse(\`${JSON.stringify(panelState)}\`);

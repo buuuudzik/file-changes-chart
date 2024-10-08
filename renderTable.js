@@ -1,10 +1,11 @@
 function renderTable(chartData, minOccurencies) {
   console.log("chartData", chartData, minOccurencies);
   const tableContainer = document.querySelector("#table-container");
+  const hasChartData = chartData && chartData.length > 0;
 
-  tableContainer.classList[chartData ? "remove" : "add"]("no-data");
+  tableContainer.classList[hasChartData ? "remove" : "add"]("no-data");
 
-  if (!chartData) {
+  if (!hasChartData) {
     tableContainer.innerText = "";
     return;
   }

@@ -1,4 +1,14 @@
 let chart = null;
+let listenersInitialized = false;
+let series = null;
+
+function unselectAllSeries() {
+  if (!chart) return;
+  series.forEach((d) => {
+    chart.hideSeries(d.name);
+  });
+}
+
 function renderChart(
   chartData,
   showDelta,
@@ -9,19 +19,20 @@ function renderChart(
 ) {
   console.log("chartData", chartData, showDelta, minOccurencies);
   const chartContainer = document.querySelector("#chart-container");
+  const hasChartData = chartData && chartData.length > 0;
 
   if (chart) {
     chart.destroy();
     chart = null;
   }
 
-  chartContainer.classList[chartData ? "remove" : "add"]("no-data");
+  chartContainer.classList[hasChartData ? "remove" : "add"]("no-data");
 
-  if (!chartData) {
+  if (!hasChartData) {
     return;
   }
 
-  let series = !showDelta
+  series = !showDelta
     ? chartData
     : chartData.map((d) => {
         return {
@@ -152,6 +163,14 @@ function renderChart(
       },
     },
   };
+
+  if (!listenersInitialized) {
+    listenersInitialized = true;
+
+    document
+      .getElementById("chart-unselect-all-button")
+      .addEventListener("click", unselectAllSeries);
+  }
 
   chart = new ApexCharts(document.querySelector("#chart"), options);
   chart.render();

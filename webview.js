@@ -60,6 +60,7 @@ const minOccurrenciesInput = document.getElementById("min-occurrencies");
 const loadingContainer = document.getElementById("loading-container");
 const scrollOverlay = document.getElementById("scroll-overlay");
 const commitInfoContainer = document.getElementById("commit-info-container");
+const noDataInfoContainer = document.getElementById("no-data-info");
 
 // Helper functions
 const markBtn = (button, isActive) => {
@@ -81,6 +82,10 @@ const selectedAuthor = createState("string", initialState.selectedAuthor, {
 
 const updateView = () => {
   const filteredData = filterDataByAuthor(chartData, selectedAuthor.value);
+
+  noDataInfoContainer.style.display =
+    !filteredData || filteredData.length === 0 ? "flex" : "none";
+
   renderChart(
     filteredData,
     showDelta.value,
