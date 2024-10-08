@@ -215,3 +215,7 @@ button {
 .label-container > .label {
   font-weight: bold;
 }
+
+.no-data {
+  display: none !important;
+}

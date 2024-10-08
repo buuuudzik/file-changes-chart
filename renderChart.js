@@ -8,10 +8,19 @@ function renderChart(
   selectCommit
 ) {
   console.log("chartData", chartData, showDelta, minOccurencies);
+  const chartContainer = document.querySelector("#chart-container");
+
   if (chart) {
     chart.destroy();
     chart = null;
   }
+
+  chartContainer.classList[chartData ? "remove" : "add"]("no-data");
+
+  if (!chartData) {
+    return;
+  }
+
   let series = !showDelta
     ? chartData
     : chartData.map((d) => {
@@ -32,7 +41,7 @@ function renderChart(
     series = series.filter((d) => d.stats.occurrences >= minOccurencies);
   }
 
-  const presentedFileName = filePath.split("/").pop();
+  const presentedFileName = filePath ? filePath.split("/").pop() : "";
 
   var options = {
     series,

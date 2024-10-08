@@ -2,6 +2,13 @@ function renderTable(chartData, minOccurencies) {
   console.log("chartData", chartData, minOccurencies);
   const tableContainer = document.querySelector("#table-container");
 
+  tableContainer.classList[chartData ? "remove" : "add"]("no-data");
+
+  if (!chartData) {
+    tableContainer.innerText = "";
+    return;
+  }
+
   const filteredData =
     minOccurencies > 0
       ? chartData.filter((d) => d.stats.occurrences >= minOccurencies)

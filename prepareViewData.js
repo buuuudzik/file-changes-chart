@@ -1,4 +1,4 @@
-function prepareViewData(data, panelState) {
+function prepareViewData(data, stringified) {
   const tableData = {};
 
   const allNames = [];
@@ -101,12 +101,15 @@ function prepareViewData(data, panelState) {
     }
   });
 
-  const chartDataString = chartData ? JSON.stringify(chartData) : "";
-
   allAuthors = [...allAuthors].sort();
 
   return {
-    chartDataString,
+    chartData,
+    chartDataString: stringified
+      ? chartData
+        ? JSON.stringify(chartData)
+        : ""
+      : null,
     allAuthors,
   };
 }

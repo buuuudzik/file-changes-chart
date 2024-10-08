@@ -70,10 +70,27 @@ function activate(context) {
 
     let chartData = null;
     let commitsInfo = null;
+    let panelInitialized = false;
+
+    const isPanelStateEqual = (a, b) => {
+      return (
+        a.showOthers === b.showOthers && a.showPeriod === b.showPeriod
+        // Below variables are handled on client side:
+        // a.minOccurencies === b.minOccurencies &&
+        // a.showDelta === b.showDelta &&
+        // a.selectedAuthor === b.selectedAuthor
+      );
+    };
 
     async function replacePanelData() {
       try {
+        const panelStateSnapshot = { ...panelState };
         const res = await prepareGraphData(folderPath, fileName, panelState);
+
+        if (!isPanelStateEqual(panelStateSnapshot, panelState)) {
+          console.log("Panel state changed. Skip replacing data.");
+          return;
+        }
 
         if (!res) {
           vscode.window.showErrorMessage("No data to show.");
@@ -86,16 +103,20 @@ function activate(context) {
         lastRepoRootPath = res.repoRootPath;
         commitsInfo = res.commitsInfo;
 
-        panel.webview.postMessage({
-          command: "chartData",
-          value: chartData,
-        });
+        if (!panelInitialized) {
+          panelInitialized = true;
+          panel.webview.html = getWebviewContent(chartData, panelState);
+        } else {
+          panel.webview.postMessage({
+            command: "chartData",
+            value: chartData,
+          });
+        }
+
         panel.webview.postMessage({
           command: "commitsInfo",
           value: commitsInfo,
         });
-
-        panel.webview.html = getWebviewContent(chartData, panelState);
 
         return true;
       } catch (err) {
