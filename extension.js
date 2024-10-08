@@ -86,6 +86,15 @@ function activate(context) {
         lastRepoRootPath = res.repoRootPath;
         commitsInfo = res.commitsInfo;
 
+        panel.webview.postMessage({
+          command: "chartData",
+          value: chartData,
+        });
+        panel.webview.postMessage({
+          command: "commitsInfo",
+          value: commitsInfo,
+        });
+
         panel.webview.html = getWebviewContent(chartData, panelState);
 
         return true;

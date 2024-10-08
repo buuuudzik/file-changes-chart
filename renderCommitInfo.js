@@ -4,10 +4,19 @@ function renderCommitInfo(commit, showOthers, container) {
   if (!commit) {
     container.style.display = "none";
     return;
-}
-container.style.display = "flex";
+  }
+  container.style.display = "flex";
 
-  const { date, author_name, author_email, refs, message, body, hash, fileNames } = commit;
+  const {
+    date,
+    author_name,
+    author_email,
+    refs,
+    message,
+    body,
+    hash,
+    fileNames,
+  } = commit;
 
   const labelWithTextContent = (label, content, container) => {
     const labelContainer = document.createElement("div");
@@ -35,14 +44,22 @@ container.style.display = "flex";
   header.appendChild(title);
 
   const hashContainer = document.createElement("div");
-  hashContainer.innerText = hash;
-  hashContainer.addEventListener("click", () => {
+  const hashSpan = document.createElement("span");
+  hashSpan.innerText = hash;
+  hashContainer.appendChild(hashSpan);
+
+  const copyBtn = document.createElement("button");
+  copyBtn.innerText = "Copy";
+  copyBtn.addEventListener("click", () => {
     navigator.clipboard.writeText(hash);
   });
+  hashContainer.appendChild(copyBtn);
   hashContainer.className = "hash-container";
   header.appendChild(hashContainer);
 
-  labelWithTextContent("Date", date, header);
+  const localDateString = new Date(date).toLocaleString();
+  const dateContainer = labelWithTextContent("Date", localDateString, header);
+  dateContainer.title = date;
 
   container.appendChild(header);
   const bodyContainer = document.createElement("div");
@@ -50,13 +67,27 @@ container.style.display = "flex";
 
   labelWithTextContent("Author Name", author_name, bodyContainer);
   labelWithTextContent("Author Email", author_email, bodyContainer);
-  labelWithTextContent("Refs", refs, bodyContainer);
-  labelWithTextContent("Message", message, bodyContainer);
-  labelWithTextContent("Body", body, bodyContainer);
+
+  if (refs) {
+    labelWithTextContent("Refs", refs, bodyContainer);
+  }
+
+  const messageContainer = document.createElement("div");
+  messageContainer.className = "message-container";
+
+  if (message) {
+    labelWithTextContent("Message", message, messageContainer);
+  }
+
+  if (body) {
+    labelWithTextContent("Body", body, messageContainer);
+  }
 
   if (showOthers) {
-    labelWithTextContent("Files", fileNames.join("\n"), bodyContainer);
+    labelWithTextContent("Files", fileNames.join("\n"), messageContainer);
   }
+
+  bodyContainer.appendChild(messageContainer);
 
   container.appendChild(bodyContainer);
 }

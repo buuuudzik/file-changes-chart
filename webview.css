@@ -182,8 +182,9 @@ button {
 
 .commit-info-header {
   display: flex;
-  flex-direction: column;
   gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .commit-info-title {
@@ -201,6 +202,14 @@ button {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.message-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .label-container > .label {
