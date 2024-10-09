@@ -68,6 +68,22 @@ const markBtn = (button, isActive) => {
   button.style.color = isActive ? "white" : "black";
 };
 
+function debounce(func, wait, immediate) {
+  let timeout;
+  return function () {
+    const context = this,
+      args = arguments;
+    const later = function () {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    const callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
+}
+
 // Create states
 const minOccurencies = createState("number", initialState.minOccurencies, {
   min: 0,
@@ -103,6 +119,8 @@ const updateView = () => {
   );
 };
 
+const debouncedUpdateView = debounce(updateView, 2000);
+
 const filterDataByAuthor = (data, author) => {
   if (author === "all") return data;
 
@@ -136,7 +154,8 @@ selectAuthorSelect.addEventListener("change", (e) => {
 });
 
 minOccurencies.addListener((value) => {
-  updateView();
+  // updateView();
+  debouncedUpdateView();
   sendMessageToBackend({ command: "minOccurencies", value }, false);
 });
 
