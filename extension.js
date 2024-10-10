@@ -139,6 +139,7 @@ function activate(context) {
       vscode.ViewColumn.One,
       {
         enableScripts: true,
+        retainContextWhenHidden: true,
       }
     );
 
